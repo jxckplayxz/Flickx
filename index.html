@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rock Island FC</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{--red:#E31C23;--red-dark:#A81419;--red-deep:#7A0F13;--black:#0A0A0A;--card:#121212;--elevated:#1A1A1A;--text:#fff;--muted:#999;--border:rgba(255,255,255,.08);--font:'Outfit',sans-serif;--body:'Inter',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:60px}
+body{font-family:var(--body);background:var(--black);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000}
+.nav-main{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;background:rgba(10,10,10,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:all .3s}
+.nav.scrolled .nav-main{padding:12px 48px}
+.nav-logo,.footer-logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.nav-logo img{height:48px;width:auto;object-fit:contain}
+.nav-logo span,.footer-logo span{font-family:var(--font);font-weight:800;font-size:1.15rem;text-transform:uppercase}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a,.footer-links a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.9rem;font-weight:600;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover,.footer-links a:hover{color:var(--red)}
+
+.hero{min-height:100vh;position:relative;display:flex;align-items:flex-end;padding:110px 48px 80px;overflow:hidden;max-width:none;margin:0}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(10,10,10,.5) 50%,rgba(10,10,10,.98) 100%),linear-gradient(90deg,rgba(227,28,35,.4) 0%,transparent 55%),radial-gradient(ellipse at 70% 30%,rgba(227,28,35,.12) 0%,transparent 50%);z-index:1}
+.hero-bg:before{content:'';position:absolute;inset:0;background:url('/logo.png') center 40%/42% no-repeat;opacity:.07;filter:grayscale(1)}
+.hero-content{position:relative;z-index:2;max-width:700px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(227,28,35,.25);border:1px solid rgba(227,28,35,.4);color:#ff6b6b;padding:6px 14px;border-radius:100px;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px}
+.hero-badge svg{width:14px;height:14px}
+.hero h1{font-family:var(--font);font-size:clamp(3.5rem,9vw,6.5rem);font-weight:900;line-height:.92;letter-spacing:-.03em;text-transform:uppercase;margin-bottom:20px}
+.hero h1 span,.section-header h2 span{color:var(--red)}
+.hero p{font-size:1.15rem;color:var(--muted);max-width:480px;margin-bottom:32px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:4px;font-weight:700;font-size:.9rem;text-decoration:none;text-transform:uppercase;letter-spacing:.04em;border:none;cursor:pointer}
+.btn svg{width:18px;height:18px}
+.btn-red{background:var(--red);color:#fff}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3)}
+
+section{padding:80px 48px;max-width:1280px;margin:0 auto}
+.section-header{margin-bottom:40px}
+.section-header h2{font-family:var(--font);font-size:2.2rem;font-weight:800;text-transform:uppercase;letter-spacing:-.02em}
+.section-tag{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+
+.matches-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:20px}
+.match-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:all .3s}
+.match-card:hover{border-color:rgba(227,28,35,.5);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.match-card-top{background:linear-gradient(90deg,var(--red-deep),var(--red));padding:10px 18px;display:flex;justify-content:space-between;align-items:center}
+.match-card-top.past{background:#1a1a1a;border-bottom:1px solid var(--border)}
+.match-badge{font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff}
+.match-badge.final{color:var(--muted)}
+.match-date-sm{font-size:.75rem;color:rgba(255,255,255,.7)}
+.match-body{padding:28px 20px}
+.match-teams-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:24px}
+.team-block{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.team-block img{width:56px;height:56px;object-fit:contain}
+.team-block h3{font-family:var(--font);font-size:.9rem;font-weight:700;line-height:1.25;max-width:120px}
+.team-block .role{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.match-center{flex-shrink:0;text-align:center;min-width:60px}
+.match-center .vs{font-family:var(--font);font-weight:800;font-size:1rem;color:var(--red);opacity:.8}
+.match-center .score{font-family:var(--font);font-weight:900;font-size:1.75rem;color:var(--red)}
+.match-footer{border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:8px}
+.match-info-row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--muted)}
+.match-info-row svg{width:14px;height:14px;color:var(--red);flex-shrink:0}
+.match-info-row strong{color:#fff;font-weight:600}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:8px}
+
+.players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.player-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:24px 16px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.player-card:hover{border-color:rgba(227,28,35,.5);transform:translateY(-4px)}
+.player-card:before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--red)}
+.player-photo,.player-photo-placeholder{width:88px;height:88px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+.player-photo{object-fit:cover;border:3px solid var(--red);background:#1a1a1a}
+.player-photo-placeholder{background:#1a1a1a;border:3px solid #333;font-family:var(--font);font-size:1.8rem;font-weight:900;color:var(--red)}
+.player-number{font-family:var(--font);font-size:.85rem;font-weight:800;color:var(--red);letter-spacing:.05em;margin-bottom:4px}
+.player-name{font-family:var(--font);font-size:1rem;font-weight:700;margin-bottom:4px}
+.player-pos{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+
+.lineup-section{padding-top:30px}
+.lineup-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.lineup-formation{background:rgba(227,28,35,.15);border:1px solid rgba(227,28,35,.35);color:#ff7777;padding:8px 16px;border-radius:5px;font-family:var(--font);font-weight:800;font-size:.9rem}
+.lineup-pitch{position:relative;overflow:hidden;background:linear-gradient(135deg,#123c27,#0b291b);border:2px solid rgba(255,255,255,.25);border-radius:12px;margin-top:30px;height:600px;padding:0}
+.pitch-lines{position:absolute;inset:12px;border:2px solid rgba(255,255,255,.25);border-radius:5px;pointer-events:none}
+.pitch-lines:before{content:'';position:absolute;left:0;right:0;top:50%;border-top:2px solid rgba(255,255,255,.25)}
+.pitch-lines:after{content:'';position:absolute;width:110px;height:110px;border:2px solid rgba(255,255,255,.25);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}
+.pitch-goal{position:absolute;left:50%;width:38%;height:35px;border:2px solid rgba(255,255,255,.25);transform:translateX(-50%)}
+.pitch-goal.top{top:12px;border-top:0}
+.pitch-goal.bottom{bottom:12px;border-bottom:0}
+.lineup-markers{position:absolute;inset:25px 14px;z-index:2}
+.lineup-player{position:absolute;transform:translate(-50%,-50%);width:80px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.lineup-player-photo,.lineup-player-placeholder{width:48px;height:48px;border-radius:50%;border:2px solid #fff;background:#171717;object-fit:cover;box-shadow:0 3px 12px #0008}
+.lineup-player-placeholder{display:flex;align-items:center;justify-content:center;color:var(--red);font-family:var(--font);font-weight:900;font-size:1.1rem}
+.lineup-player-name{font-size:.68rem;font-weight:800;color:#fff;text-shadow:0 2px 5px #000;line-height:1.2;max-width:80px;overflow-wrap:anywhere}
+.lineup-player-position{font-size:.57rem;font-weight:800;color:#fff;background:var(--red);padding:2px 5px;border-radius:3px;text-transform:uppercase}
+.lineup-status{margin-top:16px;text-align:center;color:var(--muted);font-size:.8rem}
+.lineup-section .empty-state{margin-top:20px}
+
+.highlights-section{max-width:1280px}
+.highlights-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
+.highlight-slide{position:relative;background:#111;border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:340px;aspect-ratio:9/14}
+.highlight-slide img,.highlight-slide video{width:100%;height:100%;min-height:340px;object-fit:cover;display:block;background:#080808}
+.highlight-slide img{cursor:zoom-in}
+.highlight-slide video{position:absolute;inset:0}
+.highlight-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.85) 100%);pointer-events:none}
+.highlight-caption{position:absolute;bottom:0;left:0;right:0;padding:24px 18px 18px;z-index:2}
+.highlight-caption p{font-size:.95rem;font-weight:600;line-height:1.45;color:#fff;overflow-wrap:anywhere}
+.highlight-date{font-size:.7rem;color:rgba(255,255,255,.65);margin-top:8px}
+.highlight-empty{grid-column:1/-1;text-align:center;padding:55px 20px;background:var(--card);border:1px dashed var(--border);border-radius:10px;color:var(--muted)}
+.highlight-type{position:absolute;top:12px;left:12px;z-index:3;background:rgba(0,0,0,.65);padding:6px 9px;border-radius:5px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.highlight-slide video::-webkit-media-controls{z-index:5}
+
+/* FULL SIZE PHOTO VIEWER */
+.image-viewer{
+display:none;
+position:fixed;
+inset:0;
+z-index:9999;
+background:rgba(0,0,0,.97);
+padding:60px 12px 20px;
+overflow:auto;
+align-items:flex-start;
+justify-content:center;
+overscroll-behavior:contain;
+}
+.image-viewer.active{display:flex}
+.image-viewer img{
+width:auto;
+height:auto;
+max-width:none;
+max-height:none;
+display:block;
+margin:auto;
+object-fit:contain;
+}
+.image-viewer-close{
+position:fixed;
+top:12px;
+right:16px;
+z-index:10000;
+width:44px;
+height:44px;
+border:1px solid #555;
+border-radius:50%;
+background:#222;
+color:#fff;
+font-size:28px;
+line-height:1;
+cursor:pointer;
+}
+
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+.contact-photo{padding:0 20px 96px}
+.contact-photo:not(.loaded) .photo-frame{display:none}
+.photo-frame{--r:1.5;position:relative;isolation:isolate;display:block;width:min(100%,1008px,calc(80vh * var(--r) + 8px));margin:0 auto;padding:4px;border-radius:20px;background:conic-gradient(from var(--a,0deg),var(--red-deep),var(--red) 18%,#fff 25%,var(--red) 32%,var(--red-deep) 50%,var(--red) 75%,var(--red-deep))}
+.photo-frame:after{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;box-shadow:0 0 36px 4px rgba(227,28,35,.55),0 0 90px 12px rgba(227,28,35,.28)}
+.photo-frame img{display:block;width:100%;height:auto;border-radius:16px;background:var(--card)}
+.contact-photo.visible .photo-frame{animation:frameIn 1.1s cubic-bezier(.16,1,.3,1) both,frameSpin 6s linear infinite}
+.contact-photo.visible .photo-frame:after{animation:frameGlow 3s ease-in-out infinite alternate}
+@keyframes frameIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes frameSpin{to{--a:360deg}}
+@keyframes frameGlow{from{opacity:.4}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.contact-photo .photo-frame,.contact-photo .photo-frame:after{animation:none!important}}
+
+footer{background:#050505;border-top:1px solid var(--border);padding:48px 48px 32px}
+.footer-inner{max-width:1280px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:24px;margin-bottom:32px}
+.footer-logo img{height:44px}
+.footer-links{display:flex;gap:28px}
+.footer-links a{color:var(--muted);font-size:.85rem;letter-spacing:.04em}
+.footer-bottom{max-width:1280px;margin:0 auto;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);flex-wrap:wrap;gap:12px}
+.fade-up{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+.match-card.visible:hover,.player-card.visible:hover{transform:translateY(-4px)}
+
+@media(max-width:900px){
+.nav-main{padding:14px 20px}
+.nav.scrolled .nav-main{padding:12px 20px}
+.nav-links{display:none}
+.hero{padding:110px 20px 60px;align-items:center}
+.hero-content{text-align:center}
+.hero p{margin-inline:auto}
+.hero-actions{justify-content:center}
+section{padding:60px 20px}
+.contact-photo{padding:0 20px 72px}
+footer{padding:40px 20px 24px}
+.footer-inner{flex-direction:column;text-align:center}
+.footer-links{justify-content:center;flex-wrap:wrap}
+.lineup-section{padding-top:30px}
+}
+@media(max-width:480px){
+.nav-logo img{height:38px}
+.nav-logo span{font-size:.95rem}
+.lineup-pitch{height:540px}
+.lineup-player{width:68px}
+.lineup-player-photo,.lineup-player-placeholder{width:40px;height:40px}
+.lineup-player-name{font-size:.59rem;max-width:68px}
+.highlights-feed{grid-template-columns:1fr}
+.highlight-slide{max-width:420px;width:100%;margin:0 auto}
+.matches-grid{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+
+<body>
+<header class="nav" id="nav">
+<div class="nav-main">
+<a href="/" class="nav-logo"><img src="/logo.png" alt="Rock Island FC"><span>Rock Island FC</span></a>
+<ul class="nav-links">
+<li><a href="#matches">Fixtures</a></li>
+<li><a href="#results">Results</a></li>
+<li><a href="#players">Players</a></li>
+<li><a href="#lineup">Starting XI</a></li>
+<li><a href="#highlights">Highlights</a></li>
+</ul>
+</div>
+</header>
+
+<section class="hero">
+<div class="hero-bg"></div>
+<div class="hero-content">
+<div class="hero-badge"><i data-lucide="shield"></i> Official Club Site</div>
+<h1>Rock Island<br><span>Football Club</span></h1>
+<p>Developing young athletes. Building community. Playing with pride in red and black.</p>
+<div class="hero-actions">
+<a href="#matches" class="btn btn-red">View Fixtures <i data-lucide="arrow-right"></i></a>
+<a href="#players" class="btn btn-outline">Our Squad</a>
+</div>
+</div>
+</section>
+
+<section id="matches">
+<div class="section-header fade-up">
+<div class="section-tag">The Schedule</div>
+<h2>Upcoming <span>Fixtures</span></h2>
+</div>
+<div class="matches-grid" id="upcomingContainer"><div class="empty-state">Loading fixtures...</div></div>
+</section>
+
+<section id="results">
+<div class="section-header fade-up">
+<div class="section-tag">Recent Form</div>
+<h2>Last <span>Matches</span></h2>
+</div>
+<div class="matches-grid" id="pastContainer"><div class="empty-state">Loading results...</div></div>
+</section>
+
+<section id="players">
+<div class="section-header fade-up">
+<div class="section-tag">The Squad</div>
+<h2>Our <span>Players</span></h2>
+</div>
+<div class="players-grid" id="playersContainer"><div class="empty-state">Loading squad...</div></div>
+</section>
+
+<section id="lineup" class="lineup-section">
+<div class="section-header fade-up">
+<div class="section-tag">The Team</div>
+<div class="lineup-header">
+<h2 id="lineupTitle">Starting <span>XI</span></h2>
+<div class="lineup-formation" id="lineupFormation">4-3-3</div>
+</div>
+</div>
+<div id="lineupContainer"><div class="empty-state">Loading starting lineup...</div></div>
+</section>
+
+<section id="highlights" class="highlights-section">
+<div class="section-header fade-up">
+<div class="section-tag">From the Club</div>
+<h2>Latest <span>Highlights</span></h2>
+</div>
+<div class="highlights-feed" id="highlightsContainer">
+<div class="highlight-empty">Loading highlights...</div>
+</div>
+</section>
+
+<div class="contact-photo fade-up" id="contact">
+<div class="photo-frame"><img id="contactPhoto" alt="Rock Island FC"></div>
+</div>
+
+<div class="image-viewer" id="imageViewer" aria-hidden="true">
+<button class="image-viewer-close" id="closeImageViewer" aria-label="Close image">&times;</button>
+<img id="fullSizeImage" alt="Full size Rock Island FC highlight">
+</div>
+
+<script>
+(() => {
+const wrap=document.getElementById('contact');
+const img=document.getElementById('contactPhoto');
+const files=['photo.png','photo.jpg','photo.jpeg'];
+let i=0;
+
+img.onload=()=>{
+wrap.querySelector('.photo-frame').style.setProperty('--r',img.naturalWidth/(img.naturalHeight||1));
+wrap.classList.add('loaded');
+};
+
+img.onerror=()=>{
+if(++i<files.length)img.src=files[i];
+else wrap.style.display='none';
+};
+
+img.src=files[0];
+})();
+</script>
+
+<footer>
+<div class="footer-inner">
+<a href="/" class="footer-logo"><img src="/logo.png" alt="RIFC"><span>Rock Island FC</span></a>
+<div class="footer-links">
+<a href="#matches">Fixtures</a>
+<a href="#results">Results</a>
+<a href="#players">Players</a>
+<a href="#lineup">Starting XI</a>
+<a href="#highlights">Highlights</a>
+</div>
+</div>
+<div class="footer-bottom">
+<p>© 2026 Rock Island FC. All rights reserved.</p>
+<p>Red &amp; Black · RIFC</p>
+</div>
+</footer>
+
+<script>
+(() => {
+const SUPABASE_URL='https://rpraezlikhlzvfxkzrmj.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwcmFlemxpa2hsenZmeGt6cm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MDUyMzYsImV4cCI6MjEwODk4MTIzNn0.ibKjZ5PJtmHx4VGh-eiPg_kmdUvBijz1ckrhR1UAfhc';
+const db=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+function initIcons(){if(window.lucide)lucide.createIcons()}
+initIcons();
+
+/* FULL SIZE HIGHLIGHT PHOTO VIEWER */
+const imageViewer=document.getElementById('imageViewer');
+const fullSizeImage=document.getElementById('fullSizeImage');
+const closeImageButton=document.getElementById('closeImageViewer');
+
+document.getElementById('highlightsContainer').addEventListener('click',event=>{
+const photo=event.target.closest('.highlight-slide img');
+if(!photo)return;
+
+fullSizeImage.src=photo.currentSrc||photo.src;
+imageViewer.classList.add('active');
+imageViewer.setAttribute('aria-hidden','false');
+document.body.style.overflow='hidden';
+});
+
+function closeImageViewer(){
+imageViewer.classList.remove('active');
+imageViewer.setAttribute('aria-hidden','true');
+fullSizeImage.removeAttribute('src');
+document.body.style.overflow='';
+}
+
+closeImageButton.addEventListener('click',closeImageViewer);
+
+imageViewer.addEventListener('click',event=>{
+if(event.target===imageViewer)closeImageViewer();
+});
+
+document.addEventListener('keydown',event=>{
+if(event.key==='Escape'&&imageViewer.classList.contains('active')){
+closeImageViewer();
+}
+});
+
+window.addEventListener('scroll',()=>{
+document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);
+});
+
+const observer=new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+if(entry.isIntersecting)entry.target.classList.add('visible');
+});
+},{threshold:.12});
+
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+
+function esc(value){
+return String(value??'').replace(/[&<>"']/g,char=>({
+'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+})[char]);
+}
+
+function formatDate(value){
+if(!value)return 'Date TBA';
+const date=new Date(String(value).slice(0,10)+'T12:00:00');
+if(Number.isNaN(date.getTime()))return 'Date TBA';
+return date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+}
+
+function formatTime(value){
+if(!value)return 'Time TBA';
+const parts=String(value).split(':');
+const hour=Number(parts[0]);
+if(!Number.isFinite(hour))return esc(value);
+const minute=(parts[1]||'00').slice(0,2);
+return `${hour%12||12}:${minute} ${hour>=12?'PM':'AM'}`;
+}
+
+function buildCard(match,isPast){
+const isHome=match.side==='home';
+const opponent=esc(match.opponent||'Opponent');
+const logo=esc(match.logo||'');
+const location=esc(match.location||'Location TBA');
+
+const homeTeam=`
+<div class="team-block">
+<img src="/logo.png" alt="RIFC">
+<h3>Rock Island FC</h3>
+<span class="role">${isHome?'Home':'Away'}</span>
+</div>`;
+
+const awayTeam=`
+<div class="team-block">
+${logo?`<img src="${logo}" alt="${opponent}" onerror="this.style.opacity=.35">`:`<div class="player-photo-placeholder">?</div>`}
+<h3>${opponent}</h3>
+<span class="role">${isHome?'Away':'Home'}</span>
+</div>`;
+
+const left=isHome?homeTeam:awayTeam;
+const right=isHome?awayTeam:homeTeam;
+const us=match.score_us??0;
+const them=match.score_them??0;
+
+const center=isPast
+?`<div class="match-center"><div class="score">${isHome?us:them} – ${isHome?them:us}</div></div>`
+:`<div class="match-center"><div class="vs">VS</div></div>`;
+
+return `
+<article class="match-card fade-up">
+<div class="match-card-top ${isPast?'past':''}">
+<span class="match-badge ${isPast?'final':''}">${isPast?'Full Time':(isHome?'Home':'Away')}</span>
+<span class="match-date-sm">${formatDate(match.date)}</span>
+</div>
+<div class="match-body">
+<div class="match-teams-row">${left}${center}${right}</div>
+<div class="match-footer">
+<div class="match-info-row"><i data-lucide="clock"></i><span><strong>${formatTime(match.time)}</strong></span></div>
+<div class="match-info-row"><i data-lucide="map-pin"></i><span>${location}</span></div>
+</div>
+</div>
+</article>`;
+}
+
+function renderMatches(matches){
+const upcoming=matches.filter(match=>match.status!=='past').sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+const past=matches.filter(match=>match.status==='past').sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+
+document.getElementById('upcomingContainer').innerHTML=upcoming.length?upcoming.map(match=>buildCard(match,false)).join(''):'<div class="empty-state">No upcoming fixtures scheduled</div>';
+document.getElementById('pastContainer').innerHTML=past.length?past.map(match=>buildCard(match,true)).join(''):'<div class="empty-state">No recent results yet</div>';
+}
+
+function renderPlayers(players){
+players.sort((a,b)=>(parseInt(a.number,10)||99)-(parseInt(b.number,10)||99));
+document.getElementById('playersContainer').innerHTML=players.length
+?players.map(player=>`
+<div class="player-card fade-up">
+${player.photo?`<img class="player-photo" src="${esc(player.photo)}" alt="${esc(player.name||'Player')}">`:`<div class="player-photo-placeholder">${esc(player.number||'?')}</div>`}
+<div class="player-number">#${esc(player.number||'–')}</div>
+<div class="player-name">${esc(player.name||'Player')}</div>
+<div class="player-pos">${esc(player.position||'')}</div>
+</div>`).join('')
+:'<div class="empty-state">Squad coming soon</div>';
+}
+
+function getPlayerId(entry){
+if(typeof entry==='string')return entry;
+return entry?.player_id||entry?.playerId||entry?.id||'';
+}
+
+function defaultPositions(formation){
+const layouts={
+'4-3-3':[[50,88],[15,70],[38,70],[62,70],[85,70],[25,48],[50,48],[75,48],[20,20],[50,20],[80,20]],
+'4-4-2':[[50,88],[15,70],[38,70],[62,70],[85,70],[15,47],[38,47],[62,47],[85,47],[35,20],[65,20]],
+'4-2-3-1':[[50,88],[15,70],[38,70],[62,70],[85,70],[38,52],[62,52],[20,32],[50,32],[80,32],[50,15]],
+'3-5-2':[[50,88],[25,70],[50,70],[75,70],[12,48],[32,48],[50,48],[68,48],[88,48],[35,20],[65,20]],
+'3-4-3':[[50,88],[25,70],[50,70],[75,70],[18,47],[40,47],[60,47],[82,47],[20,20],[50,20],[80,20]],
+'5-3-2':[[50,88],[10,70],[30,70],[50,70],[70,70],[90,70],[25,45],[50,45],[75,45],[35,20],[65,20]],
+'4-1-4-1':[[50,88],[15,70],[38,70],[62,70],[85,70],[50,55],[15,35],[38,35],[62,35],[85,35],[50,15]]
+};
+return layouts[formation]||layouts['4-3-3'];
+}
+
+function renderLineup(lineup,players){
+const container=document.getElementById('lineupContainer');
+const title=document.getElementById('lineupTitle');
+const formation=document.getElementById('lineupFormation');
+
+if(!lineup||!Array.isArray(lineup.players)||!lineup.players.length){
+container.innerHTML='<div class="empty-state">Starting lineup has not been announced yet</div>';
+return;
+}
+
+const playerMap=new Map(players.map(player=>[String(player.id),player]));
+const formationName=lineup.formation||'4-3-3';
+const defaults=defaultPositions(formationName);
+
+const selected=lineup.players.map((entry,index)=>{
+const id=getPlayerId(entry);
+const player=playerMap.get(String(id));
+if(!player)return null;
+
+const savedX=Number(entry?.x);
+const savedY=Number(entry?.y);
+
+return{
+player,
+position:typeof entry==='object'?(entry.position||entry.slot||player.position||''):(player.position||''),
+x:Number.isFinite(savedX)&&entry?.x!==undefined?Math.max(0,Math.min(100,savedX)):(defaults[index]?.[0]??50),
+y:Number.isFinite(savedY)&&entry?.y!==undefined?Math.max(0,Math.min(100,savedY)):(defaults[index]?.[1]??50)
+};
+}).filter(Boolean);
+
+if(!selected.length){
+container.innerHTML='<div class="empty-state">The lineup could not be loaded. Check the selected players in admin.</div>';
+return;
+}
+
+title.innerHTML=esc(lineup.title||'Starting XI');
+formation.textContent=formationName;
+
+function playerHTML(item){
+const player=item.player;
+const photo=player.photo
+?`<img class="lineup-player-photo" src="${esc(player.photo)}" alt="${esc(player.name||'Player')}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+:'';
+
+return`
+<div class="lineup-player" style="left:${item.x}%;top:${item.y}%">
+${photo}
+<div class="lineup-player-placeholder" ${photo?'style="display:none"':''}>${esc(player.number||'?')}</div>
+<div class="lineup-player-name">${esc(player.name||'Player')}</div>
+<div class="lineup-player-position">${esc(item.position||'Player')}</div>
+</div>`;
+}
+
+container.innerHTML=`
+<div class="lineup-pitch">
+<div class="pitch-lines"></div>
+<div class="pitch-goal top"></div>
+<div class="pitch-goal bottom"></div>
+<div class="lineup-markers">${selected.map(playerHTML).join('')}</div>
+</div>
+<div class="lineup-status">${selected.length} of 11 players shown</div>`;
+}
+
+function formatHighlightDate(value){
+if(!value)return '';
+const date=new Date(value);
+if(Number.isNaN(date.getTime()))return '';
+return date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+}
+
+async function loadHighlights(){
+const container=document.getElementById('highlightsContainer');
+
+try{
+if(!db)throw new Error('Supabase is not available');
+
+const{data,error}=await db
+.from('highlights')
+.select('id,media_url,media_type,caption,created_at')
+.order('created_at',{ascending:false});
+
+if(error)throw error;
+
+if(!data||!data.length){
+container.innerHTML='<div class="highlight-empty">No highlights yet. Check back soon.</div>';
+return;
+}
+
+container.innerHTML=data.map(item=>{
+const isVideo=item.media_type==='video';
+const media=isVideo
+?`<video src="${esc(item.media_url)}" controls muted playsinline preload="metadata"></video>`
+:`<img src="${esc(item.media_url)}" alt="${esc(item.caption||'Rock Island FC highlight')}" loading="lazy">`;
+
+return`
+<article class="highlight-slide">
+<span class="highlight-type">${isVideo?'Video':'Photo'}</span>
+${media}
+<div class="highlight-overlay"></div>
+<div class="highlight-caption">
+<p>${esc(item.caption||'')}</p>
+<div class="highlight-date">${formatHighlightDate(item.created_at)}</div>
+</div>
+</article>`;
+}).join('');
+
+const videos=container.querySelectorAll('video');
+
+const videoObserver=new IntersectionObserver(entries=>{
+entries.forEach(entry=>{
+const video=entry.target;
+if(entry.isIntersecting)video.play().catch(()=>{});
+else video.pause();
+});
+},{threshold:.5});
+
+videos.forEach(video=>videoObserver.observe(video));
+
+}catch(error){
+console.error('Rock Island FC highlights error:',error);
+container.innerHTML='<div class="highlight-empty">Could not load highlights right now.</div>';
+}
+}
+
+async function loadWebsite(){
+const upcomingBox=document.getElementById('upcomingContainer');
+const pastBox=document.getElementById('pastContainer');
+const playersBox=document.getElementById('playersContainer');
+const lineupBox=document.getElementById('lineupContainer');
+
+try{
+if(!db)throw new Error('Supabase library failed to load');
+
+const[matchesResponse,playersResponse,lineupResponse]=await Promise.all([
+db.from('matches').select('*').order('date',{ascending:true}),
+db.from('players').select('*').order('created_at',{ascending:true}),
+db.from('lineups').select('*').eq('id','current').maybeSingle()
+]);
+
+if(matchesResponse.error){
+console.error('Rock Island FC matches error:',matchesResponse.error);
+upcomingBox.innerHTML='<div class="empty-state">Could not load fixtures. Please try again later.</div>';
+pastBox.innerHTML='<div class="empty-state">Could not load results. Please try again later.</div>';
+}else renderMatches(matchesResponse.data||[]);
+
+let players=[];
+if(playersResponse.error){
+console.error('Rock Island FC players error:',playersResponse.error);
+playersBox.innerHTML='<div class="empty-state">Could not load players. Please try again later.</div>';
+}else{
+players=playersResponse.data||[];
+renderPlayers(players);
+}
+
+if(lineupResponse.error){
+console.error('Rock Island FC lineup error:',lineupResponse.error);
+lineupBox.innerHTML='<div class="empty-state">Could not load the starting lineup.</div>';
+}else renderLineup(lineupResponse.data,players);
+
+await loadHighlights();
+
+initIcons();
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+
+}catch(error){
+console.error('Rock Island FC Supabase error:',error);
+upcomingBox.innerHTML='<div class="empty-state">Could not load fixtures. Please try again later.</div>';
+pastBox.innerHTML='<div class="empty-state">Could not load results. Please try again later.</div>';
+playersBox.innerHTML='<div class="empty-state">Could not load players. Please try again later.</div>';
+lineupBox.innerHTML='<div class="empty-state">Could not load the starting lineup.</div>';
+}
+}
+
+loadWebsite();
+})();
+</script>
+</body>
+</html>
