@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 110">
+<defs>
+ <linearGradient id="red" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff334b"/><stop offset="1" stop-color="#c90024"/></linearGradient>
+ <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g filter="url(#glow)">
+ <path d="M18 17 L91 17 L70 42 L48 42 L42 91 L14 91 L29 53 L10 53 Z" fill="url(#red)"/>
+ <path d="M35 34 L66 34 L49 48 L31 48 Z" fill="#08090d"/>
+</g>
+<text x="112" y="52" font-family="Arial,Helvetica,sans-serif" font-size="43" font-weight="800" font-style="italic" fill="#f7f7fb">Flickx</text>
+<text x="247" y="52" font-family="Arial,Helvetica,sans-serif" font-size="43" font-weight="800" font-style="italic" fill="#ff263f">Clips</text>
+<path d="M114 68 H386" stroke="#e51b36" stroke-width="3" stroke-linecap="round"/>
+<text x="114" y="91" font-family="Arial,Helvetica,sans-serif" font-size="14" letter-spacing="3" font-weight="700" fill="#aab1c0">WATCH  •  PREVIEW  •  DOWNLOAD</text>
+</svg>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b10">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg"><title>Flickx Clips | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+  :root{color-scheme:dark;--bg:#090b10;--panel:#11151e;--line:#252d3b;--muted:#8e99aa;--text:#f4f6fb;--accent:#8b7cff;--green:#55d6be}
+  *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#211d43 0,transparent 35%),var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh}
+  .wrap{width:min(1050px,calc(100% - 32px));margin:auto}header{height:72px;border-bottom:1px solid #ffffff0c;background:#090b10c9;display:flex;align-items:center}
+  .nav{display:flex;justify-content:space-between;align-items:center;width:100%}.brand{display:flex;gap:10px;align-items:center;font:700 20px "Space Grotesk"}.brandlogo{width:190px;height:auto;display:block}
+  a{color:#c3bcff;text-decoration:none}.muted{color:var(--muted)}.hidden{display:none!important}
+  .main{padding:42px 0 70px}.topline{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-bottom:25px}.eyebrow{font-size:11px;letter-spacing:.12em;color:#aaa0ff;font-weight:800}.topline h1{font:700 34px "Space Grotesk";margin:8px 0 5px;letter-spacing:-.04em}.topline p{margin:0;color:var(--muted);font-size:13px}
+  .panel{background:linear-gradient(180deg,#151b26,#10141c);border:1px solid var(--line);border-radius:17px;padding:22px;margin-bottom:18px}.panel h2{font:600 17px "Space Grotesk";margin:0 0 18px}
+  .fieldgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}label{font-size:12px;color:#b6c0cf;font-weight:700}
+  input,textarea,select{width:100%;border:1px solid #30394a;background:#0c1018;color:white;border-radius:10px;padding:12px 13px;outline:none;font:13px "DM Sans"}input:focus,textarea:focus,select:focus{border-color:#8b7cff}textarea{min-height:85px;resize:vertical}
+  input[type=file]{padding:9px;color:#aab4c4}input[type=file]::file-selector-button{background:#25233d;color:#dcd7ff;border:0;padding:8px 11px;border-radius:7px;margin-right:10px;cursor:pointer}
+  .hint{font-size:11px;color:#7f8a9c;line-height:1.5}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:10px;padding:11px 15px;background:linear-gradient(110deg,#8d7cff,#6c5ce7);color:white;font-weight:800;font-size:12px;cursor:pointer}.btn.secondary{background:#1a2130;border:1px solid #30394a;color:#c4ccda}.btn.danger{background:#3a1c27;border:1px solid #6b2e43;color:#ffb8c8}.btn:disabled{opacity:.55;cursor:not-allowed}
+  .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px}.notice{padding:12px 14px;border-radius:10px;font-size:12px;margin:0 0 16px;line-height:1.5}.notice.error{background:#3a1c27;color:#ffc1ce;border:1px solid #6b2e43}.notice.success{background:#123329;color:#a8f0d9;border:1px solid #245b4c}.progress{height:6px;background:#242c3a;border-radius:10px;overflow:hidden;margin-top:12px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,#8b7cff,#55d6be);transition:width .2s}
+  .loginbox{width:min(420px,100%);margin:60px auto}.loginbox .panel{padding:25px}.loginbox h1{font:700 27px "Space Grotesk";margin:0 0 7px}.loginbox p{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 20px}
+  .video-list{display:grid;gap:10px}.video-row{display:grid;grid-template-columns:100px 1fr auto;gap:14px;align-items:center;padding:11px;background:#0d121a;border:1px solid #222b39;border-radius:12px}.video-row img,.placeholder{width:100px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#20283a}.video-row h3{font:600 14px "Space Grotesk";margin:0 0 5px}.video-row p{font-size:11px;color:var(--muted);margin:0}.rowactions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:end}.status{font-size:10px;font-weight:800;padding:5px 8px;border-radius:7px;background:#173a31;color:#8ce6ca}.status.draft{background:#393021;color:#f2ce91}
+  @media(max-width:650px){.main{padding-top:28px}.topline{align-items:start;flex-direction:column}.fieldgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.panel{padding:16px}.video-row{grid-template-columns:76px 1fr}.video-row img,.placeholder{width:76px}.rowactions{grid-column:1/-1;justify-content:start}.loginbox{margin:35px auto}}
+  </style>
+</head>
+<body>
+<header><div class="wrap nav"><div class="brand"><img class="brandlogo" src="./logo.svg" alt="Flickx Clips logo"><span class="muted" style="font:500 11px 'DM Sans'">ADMIN</span></div><a href="./index.html">View website ↗</a></div></header>
+<main class="wrap">
+  <section id="loginView" class="loginbox">
+    <div class="panel"><div class="eyebrow">PRIVATE DASHBOARD</div><h1>Welcome back</h1><p>Sign in with the admin account you created in Supabase. Public users cannot upload clips here.</p>
+      <div id="loginNotice"></div>
+      <form id="loginForm" class="field" style="gap:12px"><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required placeholder="you@example.com"></div><div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required placeholder="Your password"></div><button class="btn" type="submit"><i data-lucide="lock-keyhole" width="15"></i> Sign in</button></form>
+    </div>
+  </section>
+  <section id="dashboard" class="main hidden">
+    <div class="topline"><div><div class="eyebrow">CONTENT MANAGEMENT</div><h1>Your clip library</h1><p>Upload, publish and manage the videos on your public website.</p></div><button class="btn secondary" id="logout"><i data-lucide="log-out" width="15"></i> Sign out</button></div>
+    <div id="dashNotice"></div>
+    <section class="panel">
+      <h2><i data-lucide="upload-cloud" width="17" style="vertical-align:middle;margin-right:7px"></i>Upload a new clip</h2>
+      <form id="uploadForm">
+        <div class="fieldgrid">
+          <div class="field"><label for="title">Video title *</label><input id="title" maxlength="100" required placeholder="e.g. Best goals of the week"></div>
+          <div class="field"><label for="category">Category</label><input id="category" maxlength="35" placeholder="e.g. Soccer edits"></div>
+          <div class="field full"><label for="description">Description</label><textarea id="description" maxlength="500" placeholder="Tell people what this clip is about"></textarea></div>
+          <div class="field"><label for="videoFile">Video file *</label><input id="videoFile" type="file" accept="video/mp4,video/webm,video/quicktime" required><span class="hint">MP4, WebM or MOV. Keep within your Supabase Storage file size limit.</span></div>
+          <div class="field"><label for="thumbnailFile">Thumbnail (optional)</label><input id="thumbnailFile" type="file" accept="image/jpeg,image/png,image/webp"><span class="hint">JPG, PNG or WebP works best. 16:9 images recommended.</span></div>
+        </div>
+        <div class="actions"><button class="btn" id="uploadBtn" type="submit"><i data-lucide="cloud-upload" width="16"></i> Upload clip</button><span class="hint" id="uploadStatus">New uploads are saved in Supabase Storage</span></div>
+        <div class="progress hidden" id="progress"><div id="progressBar"></div></div>
+      </form>
+    </section>
+    <section class="panel"><div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h2 style="margin:0 0 16px">All uploaded clips</h2><button class="btn secondary" id="refresh" style="margin-bottom:14px">Refresh</button></div><div id="videoList" class="video-list"><p class="hint">Loading your videos...</p></div></section>
+  </section>
+</main>
+<script>
+const SUPABASE_URL="https://sfjqxtdbtcgxleerwibo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_bLlSutMI5kpVSIKFfjm8zQ_yhU1p9xH";
+const BUCKET="flickx-videos";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null;
+const $=id=>document.getElementById(id);
+function esc(value=""){return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function showNotice(where,message,type="error"){ $(where).innerHTML=`<div class="notice ${type}">${esc(message)}</div>`; }
+function clearNotice(where){$(where).innerHTML="";}
+function fileExt(name){return (name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"");}
+function publicUrl(path){return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;}
+async function isAdmin(user){
+  const {data,error}=await db.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();
+  if(error)throw error;return !!data;
+}
+function showDashboard(){ $("loginView").classList.add("hidden");$("dashboard").classList.remove("hidden");loadVideos(); }
+function showLogin(){ $("dashboard").classList.add("hidden");$("loginView").classList.remove("hidden"); }
+async function checkSession(){
+  const {data:{session}}=await db.auth.getSession();
+  if(!session){showLogin();return;}
+  currentUser=session.user;
+  try{if(await isAdmin(currentUser))showDashboard();else{await db.auth.signOut();showLogin();showNotice("loginNotice","This account is not on the admin list. Add its user ID to admin_users in Supabase.");}}catch(e){showLogin();showNotice("loginNotice","Could not verify admin access. Make sure you ran setup.sql. "+e.message);}
+}
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();clearNotice("loginNotice");
+  const {data,error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+  if(error){showNotice("loginNotice",error.message);return;}
+  currentUser=data.user;
+  try{if(await isAdmin(currentUser))showDashboard();else{await db.auth.signOut();showNotice("loginNotice","This account is not authorized as an admin.");}}catch(err){await db.auth.signOut();showNotice("loginNotice","Admin check failed. "+err.message);}
+});
+$("logout").addEventListener("click",async()=>{await db.auth.signOut();currentUser=null;showLogin();});
+$("refresh").addEventListener("click",loadVideos);
+async function loadVideos(){
+  $("videoList").innerHTML='<p class="hint">Loading your videos...</p>';
+  const {data,error}=await db.from("videos").select("*").order("created_at",{ascending:false});
+  if(error){$("videoList").innerHTML=`<p class="hint">Could not load videos: ${esc(error.message)}</p>`;return;}
+  if(!data.length){$("videoList").innerHTML='<p class="hint">No videos yet. Upload your first clip above.</p>';return;}
+  $("videoList").innerHTML=data.map(v=>`<article class="video-row" data-id="${v.id}">
+    ${v.thumbnail_path?`<img src="${esc(publicUrl(v.thumbnail_path))}" alt="">`:'<div class="placeholder"></div>'}
+    <div><h3>${esc(v.title)}</h3><p>${esc(v.category||"Uncategorized")} · ${new Date(v.created_at).toLocaleDateString()}</p><div style="margin-top:7px"><span class="status ${v.is_published?"":"draft"}">${v.is_published?"PUBLISHED":"HIDDEN"}</span></div></div>
+    <div class="rowactions"><button class="btn secondary toggle" data-id="${v.id}" data-published="${v.is_published}">${v.is_published?"Hide":"Publish"}</button><button class="btn danger delete" data-id="${v.id}">Delete</button></div>
+  </article>`).join("");
+  $("videoList").querySelectorAll(".toggle").forEach(b=>b.addEventListener("click",()=>togglePublish(b.dataset.id,b.dataset.published==="true")));
+  $("videoList").querySelectorAll(".delete").forEach(b=>b.addEventListener("click",()=>deleteVideo(b.dataset.id)));
+}
+$("uploadForm").addEventListener("submit",async e=>{
+  e.preventDefault();clearNotice("dashNotice");
+  if(!currentUser){showNotice("dashNotice","Please sign in again.");return;}
+  const title=$("title").value.trim(),description=$("description").value.trim(),category=$("category").value.trim()||"Clips";
+  const video=$("videoFile").files[0],thumb=$("thumbnailFile").files[0];
+  if(!video){showNotice("dashNotice","Choose a video first.");return;}
+  if(!/^video\/(mp4|webm|quicktime)$/.test(video.type)){showNotice("dashNotice","Use an MP4, WebM or MOV video.");return;}
+  if(thumb&&!/^image\/(jpeg|png|webp)$/.test(thumb.type)){showNotice("dashNotice","Thumbnail must be JPG, PNG or WebP.");return;}
+  $("uploadBtn").disabled=true;$("uploadStatus").textContent="Uploading video...";$("progress").classList.remove("hidden");$("progressBar").style.width="15%";
+  const id=crypto.randomUUID(),videoPath=`videos/${id}.${fileExt(video.name)}`,thumbPath=thumb?`thumbnails/${id}.${fileExt(thumb.name)}`:null;
+  let uploadedVideo=false,uploadedThumb=false;
+  try{
+    const vUp=await db.storage.from(BUCKET).upload(videoPath,video,{cacheControl:"3600",upsert:false,contentType:video.type});
+    if(vUp.error)throw vUp.error;uploadedVideo=true;$("progressBar").style.width="65%";
+    if(thumb){$("uploadStatus").textContent="Uploading thumbnail...";const tUp=await db.storage.from(BUCKET).upload(thumbPath,thumb,{cacheControl:"3600",upsert:false,contentType:thumb.type});if(tUp.error)throw tUp.error;uploadedThumb=true;}
+    $("progressBar").style.width="85%";$("uploadStatus").textContent="Saving clip details...";
+    const {error}=await db.from("videos").insert({title,description,category,video_path:videoPath,thumbnail_path:thumbPath,is_published:true,uploaded_by:currentUser.id});
+    if(error)throw error;
+    $("progressBar").style.width="100%";showNotice("dashNotice","Your clip is uploaded and published on the main website.","success");
+    $("uploadForm").reset();$("uploadStatus").textContent="Upload complete";await loadVideos();
+  }catch(err){
+    if(uploadedVideo)await db.storage.from(BUCKET).remove([videoPath]);
+    if(uploadedThumb)await db.storage.from(BUCKET).remove([thumbPath]);
+    showNotice("dashNotice","Upload failed: "+err.message);
+    $("uploadStatus").textContent="Upload failed";
+  }finally{
+    $("uploadBtn").disabled=false;setTimeout(()=>$("progress").classList.add("hidden"),900);
+  }
+});
+async function togglePublish(id,currentlyPublished){
+  const {error}=await db.from("videos").update({is_published:!currentlyPublished}).eq("id",id);
+  if(error){showNotice("dashNotice","Could not update clip: "+error.message);return;}await loadVideos();
+}
+async function deleteVideo(id){
+  if(!confirm("Delete this clip and its stored files? This cannot be undone."))return;
+  const {data,error}=await db.from("videos").select("video_path,thumbnail_path").eq("id",id).single();
+  if(error){showNotice("dashNotice",error.message);return;}
+  const paths=[data.video_path,data.thumbnail_path].filter(Boolean);
+  const remove=await db.storage.from(BUCKET).remove(paths);
+  if(remove.error){showNotice("dashNotice","Could not delete stored files: "+remove.error.message);return;}
+  const deleted=await db.from("videos").delete().eq("id",id);
+  if(deleted.error){showNotice("dashNotice","Files removed but database row could not be deleted: "+deleted.error.message);return;}
+  showNotice("dashNotice","Clip deleted.","success");loadVideos();
+}
+db.auth.onAuthStateChange((_event,session)=>{if(!session){currentUser=null;showLogin();}});
+lucide.createIcons();checkSession();
+</script>
+</body>
+</html>
